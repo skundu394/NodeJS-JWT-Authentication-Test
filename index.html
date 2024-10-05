@@ -1,0 +1,236 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QwvFUR52bPt0+ae43ZlmDnAvTs75gai7Yl5NxK2ur2mtoVr1z4F12JImkNcGXpGd" crossorigin="anonymous">
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
+</head>
+<body>
+    
+<div class="container-fluid">
+    <h1 class="row">Login</h1>
+
+    <main>
+        <div class="row">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username">
+        </div> 
+
+        <div class="row">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password">
+        </div>
+
+        <div>
+            <button onclick="login()">Login</button>
+            <button onclick="getDashboard()">Get Dashboard</button>
+            <button onclick="changeSettings()">Settings</button>
+        </div>
+    </main>
+   
+</div>
+
+<script>
+    function isTokenValid() {  
+            const token = localStorage.getItem('jwt'); 
+            const expired = localStorage.getItem('expired');
+
+            if (!token) {
+                console.log("No token");
+                return false;
+            }
+            try {
+                console.log("date now : " + Date.now());
+                console.log("expire   : " + expired * 1000);
+                console.log("Time left: " + (expired * 1000 - Date.now())/1000 + "s");
+                if (Date.now() >= expired * 1000) {
+                    console.log("Token is expired");
+                    localStorage.removeItem("jwt");
+                    localStorage.removeItem("expired");
+                    location.replace('/');
+                    return false;
+                }
+            } catch (err) {
+                console.log("Token is invalid");
+                return false;
+            }
+            return true;
+        }
+
+    function login() {
+        const data = {
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+
+        axios.post('/api/login', data)
+            .then(res => {
+                console.log(res);
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+
+                if (res && res.data && res.data.success) {
+                    const token = res.data.token;
+                    localStorage.setItem('jwt',token);
+                    localStorage.setItem('expired', expired);
+                    setInterval(isTokenValid, 180000); // Token expires in 3 m = 60*3*1000 milliseconds
+                    getDashboard();  // Call the function to load the dashboard after login
+                }
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    }
+
+    function getDashboard() {
+        const token = localStorage.getItem('jwt');
+        axios.get('/api/dashboard', {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Corrected token usage with backticks for interpolation
+            }
+        })
+        .then(res => {
+            if (res && res.data && res.data.success) {
+                document.querySelector('h1.row').innerHTML = 'Dashboard';  // Change title to Dashboard
+                document.querySelector('main').innerHTML = res.data.myContent;  // Show dashboard content
+
+                var btnSettings = document.createElement('button');
+                    var elementDiv = document.createElement('div');
+                    btnSettings.innerHTML = "Settings";
+                    btnSettings.setAttribute('onclick', 'changeSettings()');
+                    document.querySelector('main').appendChild(elementDiv);
+                    elementDiv.appendChild(btnSettings);
+
+                history.pushState(null, null, '/api/dashboard');
+            }
+        })
+        .catch(error => {
+            console.log('Error accessing dashboard:', error);
+        });
+    }
+
+    function changeSettings() {
+        const token = localStorage.getItem('jwt');
+        axios.get('/api/settings', {
+            headers: {
+                'Authorization': `Bearer ${token}`  // Corrected token usage with backticks for interpolation
+            }
+        })
+        .then(res => {
+            if (res && res.data && res.data.success) {
+                document.querySelector('h1.row').innerHTML = 'Settings';  // Change title to Settings
+                document.querySelector('main').innerHTML = res.data.myContent;  // Show settings content
+
+                var btnDashboard = document.createElement('button');
+                    var elementDiv = document.createElement('div');
+                    btnDashboard.innerHTML = "Get Dashboard";
+                    btnDashboard.setAttribute('onclick', 'getDashboard()');
+                    document.querySelector('main').appendChild(elementDiv);
+                    elementDiv.appendChild(btnDashboard);
+
+                history.pushState(null, null, '/api/settings');
+            }
+        })
+        .catch(error => {
+            console.log('Error accessing settings:', error);
+        });
+    }
+
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QwvFUR52bPt0+ae43ZlmDnAvTs75gai7Yl5NxK2ur2mtoVr1z4F12JImkNcGXpGd" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js" integrity="sha512-DdX/YwF5e41Ok+AI81HI8f5/5UsoxCVT9GKYZRIzpLxb8Twz4ZwPPX+jQMwMhNQ9b5+zDEefc+dcvQoPWGNZ3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<!-- </head>
+<body>
+    
+<div class="container-fluid">
+    <h1 class="row">Login</h1>
+
+    <main>
+        <div class="row">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username">
+        </div> 
+
+        <div class="row">
+            <label for="password">password</label>
+            <input type="password" name="password" id="password">
+         </div>
+
+         <div>
+            <button onclick="login()">Login</button>
+         </div>
+    </main>
+   
+</div>
+
+<script>
+    var token = '';
+    function login() {
+        const data = {
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value
+        };
+        axios.post('/api/login', data)
+            .then(res => {
+                console.log(res);
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                if (res && res.data && res.data.success) {
+                    token = res.data.token;
+                    getDashboard();
+                }
+            });
+    }
+
+    function getDashboard() {
+        axios.get('/api/dashboard', {
+            headers: {
+                'Authorization': 'Bearer ${token}'
+            }
+        }).then(res => {
+            if(res && res.data && res.data.success) {
+                document.querySelector('h1.row').innerHTML = 'Dashboard';
+                document.querySelector('main').innerHTML = res.data.myContent;
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html> --> 
